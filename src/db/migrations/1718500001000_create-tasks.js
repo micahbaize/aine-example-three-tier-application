@@ -1,3 +1,5 @@
+// Disconnect check
+
 exports.up = (pgm) => {
   pgm.createTable('tasks', {
     id: { type: 'serial', primaryKey: true },
@@ -10,3 +12,5 @@ exports.up = (pgm) => {
 exports.down = (pgm) => {
   pgm.dropTable('tasks');
 };
+
+// Disconnect check

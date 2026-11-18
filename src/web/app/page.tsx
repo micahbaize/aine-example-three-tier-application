@@ -1,3 +1,5 @@
+// Disconnect check
+
 import { getTasks, createTask, toggleTask } from './actions';
 
 export default async function Home() {
@@ -81,3 +83,5 @@ export default async function Home() {
     </div>
   );
 }
+
+// Disconnect check

@@ -1,3 +1,5 @@
+// Disconnect check
+
 const express = require('express');
 const db = require('./db');
 
@@ -51,3 +53,5 @@ app.patch('/tasks/:id', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`API listening on port ${PORT}`);
 });
+
+// Disconnect check
