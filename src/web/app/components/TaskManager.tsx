@@ -13,6 +13,7 @@ import {
   type Task,
   type Project,
 } from '../actions';
+import { ThemeToggle } from './ThemeToggle';
 
 export default function TaskManager({
   initialProjects,
@@ -123,9 +124,12 @@ export default function TaskManager({
         {/* Sidebar - Projects */}
         <div className="md:col-span-1">
           <div className="sticky top-8">
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">
-              Projects
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                Projects
+              </h2>
+              <ThemeToggle />
+            </div>
 
             {/* New Project Button */}
             <button
