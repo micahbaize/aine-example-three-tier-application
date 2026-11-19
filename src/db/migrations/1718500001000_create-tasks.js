@@ -1,3 +1,4 @@
+// TESTING
 exports.up = (pgm) => {
   pgm.createTable('tasks', {
     id: { type: 'serial', primaryKey: true },
