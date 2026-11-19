@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - Projects Feature Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .project-item {
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .project-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(4px);
+        }
+
+        .project-item.active {
+            background: #3498db;
+            font-weight: 600;
+        }
+
+        .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .btn-new-project {
+            width: 100%;
+            padding: 10px 15px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn-new-project:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #ddd;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header .project-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .btn-add-task {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-add-task:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .tasks-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-left: 4px solid #3498db;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .task-item.work {
+            border-left-color: #e74c3c;
+        }
+
+        .task-item.personal {
+            border-left-color: #f39c12;
+        }
+
+        .task-item.learning {
+            border-left-color: #9b59b6;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .task-project {
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .project-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #ecf0f1;
+        }
+
+        .project-badge.work {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .project-badge.personal {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .project-badge.learning {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #333;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .modal-buttons .btn-save {
+            background: #27ae60;
+            color: white;
+        }
+
+        .modal-buttons .btn-save:hover {
+            background: #229954;
+        }
+
+        .modal-buttons .btn-cancel {
+            background: #ecf0f1;
+            color: #333;
+        }
+
+        .modal-buttons .btn-cancel:hover {
+            background: #bdc3c7;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-delete {
+            padding: 6px 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .demo-notice {
+            background: #ffffcc;
+            border: 1px solid #ffd700;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .demo-notice-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>📁 Projects</h2>
+            <div class="project-list" id="projectList">
+                <div class="project-item active" onclick="selectProject('all')">
+                    <span style="font-size: 16px;">📋</span>
+                    All Tasks
+                </div>
+            </div>
+            <button class="btn-new-project" onclick="openNewProjectModal()">+ New Project</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div>
+                    <h1 id="pageTitle">All Tasks</h1>
+                    <div class="project-info" id="projectInfo"></div>
+                </div>
+                <button class="btn-add-task" onclick="openNewTaskModal()">+ New Task</button>
+            </div>
+
+            <div class="tasks-area">
+                <div class="demo-notice">
+                    <div class="demo-notice-icon">ℹ️</div>
+                    <div>
+                        <strong>Demo Mode:</strong> This is a live demonstration of the Projects feature. 
+                        Click projects in the sidebar to filter tasks, or create new projects/tasks to see them in action.
+                    </div>
+                </div>
+                <div id="tasksList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Project Modal -->
+    <div class="modal" id="newProjectModal">
+        <div class="modal-content">
+            <h2>Create New Project</h2>
+            <form onsubmit="saveProject(event)">
+                <div class="form-group">
+                    <label for="projectName">Project Name *</label>
+                    <input type="text" id="projectName" placeholder="e.g., Marketing Campaign" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectDesc">Description</label>
+                    <textarea id="projectDesc" placeholder="Optional description..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Color</label>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background: #e74c3c;" data-color="#e74c3c" onclick="selectColor('#e74c3c')"></div>
+                        <div class="color-option" style="background: #f39c12;" data-color="#f39c12" onclick="selectColor('#f39c12')"></div>
+                        <div class="color-option" style="background: #3498db;" data-color="#3498db" onclick="selectColor('#3498db')"></div>
+                        <div class="color-option" style="background: #27ae60;" data-color="#27ae60" onclick="selectColor('#27ae60')"></div>
+                        <div class="color-option" style="background: #9b59b6;" data-color="#9b59b6" onclick="selectColor('#9b59b6')"></div>
+                        <div class="color-option" style="background: #1abc9c;" data-color="#1abc9c" onclick="selectColor('#1abc9c')"></div>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-save">Create Project</button>
+                    <button type="button" class="btn-cancel" onclick="closeProjectModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Task Modal -->
+    <div class="modal" id="newTaskModal">
+        <div class="modal-content">
+            <h2>Create New Task</h2>
+            <form onsubmit="saveTask(event)">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title *</label>
+                    <input type="text" id="taskTitle" placeholder="What needs to be done?" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskProject">Project</label>
+                    <select id="taskProject" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 14px;">
+                        <option value="all">No Project (All Tasks)</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-save">Create Task</button>
+                    <button type="button" class="btn-cancel" onclick="closeTaskModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let projects = [
+            { id: 1, name: 'Work', color: '#e74c3c', description: 'Work-related tasks' },
+            { id: 2, name: 'Personal', color: '#f39c12', description: 'Personal projects' },
+            { id: 3, name: 'Learning', color: '#9b59b6', description: 'Learning & development' }
+        ];
+
+        let tasks = [
+            { id: 1, title: 'Complete project report', projectId: 1, project: 'Work', completed: false },
+            { id: 2, title: 'Review Q4 metrics', projectId: 1, project: 'Work', completed: false },
+            { id: 3, title: 'Buy groceries', projectId: 2, project: 'Personal', completed: false },
+            { id: 4, title: 'Plan weekend trip', projectId: 2, project: 'Personal', completed: false },
+            { id: 5, title: 'Complete JavaScript course module 3', projectId: 3, project: 'Learning', completed: false },
+            { id: 6, title: 'Read React documentation', projectId: 3, project: 'Learning', completed: false },
+            { id: 7, title: 'Prepare presentation slides', projectId: 1, project: 'Work', completed: false }
+        ];
+
+        let currentProject = 'all';
+        let selectedColor = '#e74c3c';
+        let nextProjectId = 4;
+        let nextTaskId = 8;
+
+        function renderProjects() {
+            const projectList = document.getElementById('projectList');
+            projectList.innerHTML = `
+                <div class="project-item ${currentProject === 'all' ? 'active' : ''}" onclick="selectProject('all')">
+                    <span style="font-size: 16px;">📋</span>
+                    All Tasks
+                </div>
+            `;
+            
+            projects.forEach(p => {
+                const projectCount = tasks.filter(t => t.projectId === p.id).length;
+                projectList.innerHTML += `
+                    <div class="project-item ${currentProject === p.id ? 'active' : ''}" onclick="selectProject(${p.id})">
+                        <div class="color-dot" style="background: ${p.color};"></div>
+                        <span>${p.name} (${projectCount})</span>
+                    </div>
+                `;
+            });
+        }
+
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+            let filtered = tasks;
+
+            if (currentProject !== 'all') {
+                filtered = tasks.filter(t => t.projectId === currentProject);
+            }
+
+            if (filtered.length === 0) {
+                tasksList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No tasks yet</h3>
+                        <p>Create a task to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            tasksList.innerHTML = filtered.map(task => {
+                const project = projects.find(p => p.id === task.projectId);
+                const projectClassName = project ? project.name.toLowerCase() : '';
+                return `
+                    <div class="task-item ${projectClassName}">
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} 
+                               onchange="toggleTask(${task.id})">
+                        <div class="task-content">
+                            <div class="task-title" style="text-decoration: ${task.completed ? 'line-through' : 'none'}; color: ${task.completed ? '#999' : '#333'};">
+                                ${task.title}
+                            </div>
+                            <div class="task-project">
+                                <span class="project-badge ${projectClassName}">${task.project}</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="btn-delete" onclick="deleteTask(${task.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateHeader() {
+            const title = document.getElementById('pageTitle');
+            const info = document.getElementById('projectInfo');
+
+            if (currentProject === 'all') {
+                title.textContent = 'All Tasks';
+                info.textContent = `${tasks.length} total tasks`;
+            } else {
+                const project = projects.find(p => p.id === currentProject);
+                if (project) {
+                    title.textContent = project.name;
+                    info.textContent = project.description;
+                }
+            }
+        }
+
+        function selectProject(id) {
+            currentProject = id;
+            renderProjects();
+            renderTasks();
+            updateHeader();
+        }
+
+        function openNewProjectModal() {
+            document.getElementById('newProjectModal').classList.add('active');
+        }
+
+        function closeProjectModal() {
+            document.getElementById('newProjectModal').classList.remove('active');
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectDesc').value = '';
+            selectedColor = '#e74c3c';
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector('[data-color="#e74c3c"]').classList.add('selected');
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector(`[data-color="${color}"]`).classList.add('selected');
+        }
+
+        function saveProject(e) {
+            e.preventDefault();
+            const name = document.getElementById('projectName').value;
+            const desc = document.getElementById('projectDesc').value;
+
+            const newProject = {
+                id: nextProjectId++,
+                name: name,
+                description: desc,
+                color: selectedColor
+            };
+
+            projects.push(newProject);
+            closeProjectModal();
+            renderProjects();
+            updateTaskProjectSelect();
+        }
+
+        function openNewTaskModal() {
+            document.getElementById('newTaskModal').classList.add('active');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('newTaskModal').classList.remove('active');
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskProject').value = 'all';
+        }
+
+        function updateTaskProjectSelect() {
+            const select = document.getElementById('taskProject');
+            select.innerHTML = '<option value="all">No Project (All Tasks)</option>';
+            projects.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+            });
+        }
+
+        function saveTask(e) {
+            e.preventDefault();
+            const title = document.getElementById('taskTitle').value;
+            const projectId = parseInt(document.getElementById('taskProject').value);
+
+            let project = { id: null, name: 'No Project' };
+            if (projectId !== 'all' && !isNaN(projectId)) {
+                project = projects.find(p => p.id === projectId);
+            }
+
+            const newTask = {
+                id: nextTaskId++,
+                title: title,
+                projectId: projectId === 'all' ? null : projectId,
+                project: project.name,
+                completed: false
+            };
+
+            tasks.push(newTask);
+            closeTaskModal();
+            renderTasks();
+            renderProjects();
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) task.completed = !task.completed;
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+            renderProjects();
+        }
+
+        // Initialize
+        renderProjects();
+        renderTasks();
+        updateHeader();
+        updateTaskProjectSelect();
+    </script>
+</body>
+</html>
