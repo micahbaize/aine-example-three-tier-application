@@ -15,7 +15,7 @@ import {
 } from '../actions';
 import { TaskItem } from './TaskItem';
 import { Calendar } from './Calendar';
-import { RecurrenceForm } from './RecurrenceForm';
+import { RecurrenceForm, RecurrencePattern } from './RecurrenceForm';
 
 interface TaskManagerProps {
   initialTasks: Task[];
@@ -44,7 +44,7 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
   const [newTaskScheduledFor, setNewTaskScheduledFor] = useState('');
-  const [recurrenceData, setRecurrenceData] = useState<Record<string, unknown> | null>(null);
+  const [recurrenceData, setRecurrenceData] = useState<RecurrencePattern | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Refresh tasks when project selection changes
@@ -117,11 +117,11 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
       }
 
       if (recurrenceData) {
-        formData.append('recurrenceFrequency', recurrenceData.frequency as string);
-        formData.append('recurrenceInterval', recurrenceData.interval as string);
-        formData.append('recurrenceEndType', recurrenceData.endType as string);
+        formData.append('recurrenceFrequency', recurrenceData.frequency);
+        formData.append('recurrenceInterval', recurrenceData.interval.toString());
+        formData.append('recurrenceEndType', recurrenceData.endType);
         if (recurrenceData.endValue) {
-          formData.append('recurrenceEndValue', recurrenceData.endValue as string);
+          formData.append('recurrenceEndValue', recurrenceData.endValue);
         }
       }
 

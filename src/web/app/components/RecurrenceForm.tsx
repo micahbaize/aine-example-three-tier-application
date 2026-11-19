@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-interface RecurrencePattern {
+export interface RecurrencePattern {
   frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
   interval: number;
   endType: 'never' | 'count' | 'until';
