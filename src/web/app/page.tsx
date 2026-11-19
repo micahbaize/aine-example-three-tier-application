@@ -1,7 +1,7 @@
-import { getTasks, createTask, toggleTask } from './actions';
+import { getTasks, createTask, toggleTask, type Task } from './actions';
 
 export default async function Home() {
-  let tasks = [];
+  let tasks: Task[] = [];
   try {
     tasks = await getTasks();
   } catch (error) {
@@ -38,7 +38,7 @@ export default async function Home() {
           {tasks.length === 0 && (
             <li className="text-zinc-400 dark:text-zinc-500 text-center py-8">No tasks yet. Add one above!</li>
           )}
-          {tasks.map((task: any) => (
+          {tasks.map((task: Task) => (
             <li
               key={task.id}
               className="flex items-center gap-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3 transition-colors duration-200"
@@ -80,7 +80,7 @@ export default async function Home() {
 
         {tasks.length > 0 && (
           <p className="mt-4 text-xs text-zinc-400 dark:text-zinc-500 text-right">
-            {tasks.filter((t: any) => t.completed).length} / {tasks.length} completed
+            {tasks.filter((t: Task) => t.completed).length} / {tasks.length} completed
           </p>
         )}
       </div>
