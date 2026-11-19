@@ -1,10 +1,16 @@
-import { getTasks, createTask, toggleTask } from './actions';
+import { getTasks, createTask, toggleTask, type Task } from './actions';
 
 export default async function Home() {
-  const tasks = await getTasks();
+  let tasks: Task[] = [];
+  try {
+    tasks = await getTasks();
+  } catch (error) {
+    console.error('Failed to fetch tasks:', error);
+    // Fallback to empty list
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 py-16 px-4">
+    <main className="flex-1 bg-zinc-50 dark:bg-zinc-900 transition-colors duration-300 py-16 px-4">
       <div className="max-w-lg mx-auto">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-8">
           To-Do List
@@ -17,11 +23,11 @@ export default async function Home() {
             type="text"
             required
             placeholder="Add a new task..."
-            className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-4 py-2 text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+            className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-4 py-2 text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:focus:ring-zinc-400 transition-colors duration-200"
           />
           <button
             type="submit"
-            className="rounded-lg bg-zinc-900 dark:bg-zinc-50 px-5 py-2 font-medium text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors"
+            className="rounded-lg bg-zinc-900 dark:bg-zinc-50 px-5 py-2 font-medium text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors duration-200"
           >
             Add
           </button>
@@ -30,12 +36,12 @@ export default async function Home() {
         {/* Task list */}
         <ul className="space-y-2">
           {tasks.length === 0 && (
-            <li className="text-zinc-400 text-center py-8">No tasks yet. Add one above!</li>
+            <li className="text-zinc-400 dark:text-zinc-500 text-center py-8">No tasks yet. Add one above!</li>
           )}
-          {tasks.map((task) => (
+          {tasks.map((task: Task) => (
             <li
               key={task.id}
-              className="flex items-center gap-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3"
+              className="flex items-center gap-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3 transition-colors duration-200"
             >
               <form
                 action={async () => {
@@ -45,10 +51,10 @@ export default async function Home() {
               >
                 <button
                   type="submit"
-                  className={`h-5 w-5 rounded border-2 flex-shrink-0 transition-colors ${
+                  className={`h-5 w-5 rounded border-2 flex-shrink-0 transition-colors duration-200 ${
                     task.completed
                       ? 'bg-zinc-900 dark:bg-zinc-50 border-zinc-900 dark:border-zinc-50'
-                      : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-500'
+                      : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-500 dark:hover:border-zinc-400'
                   }`}
                   aria-label={task.completed ? 'Mark incomplete' : 'Mark complete'}
                 >
@@ -60,9 +66,9 @@ export default async function Home() {
                 </button>
               </form>
               <span
-                className={`flex-1 text-sm ${
+                className={`flex-1 text-sm transition-colors duration-200 ${
                   task.completed
-                    ? 'line-through text-zinc-400'
+                    ? 'line-through text-zinc-400 dark:text-zinc-500'
                     : 'text-zinc-800 dark:text-zinc-100'
                 }`}
               >
@@ -73,11 +79,11 @@ export default async function Home() {
         </ul>
 
         {tasks.length > 0 && (
-          <p className="mt-4 text-xs text-zinc-400 text-right">
-            {tasks.filter((t) => t.completed).length} / {tasks.length} completed
+          <p className="mt-4 text-xs text-zinc-400 dark:text-zinc-500 text-right">
+            {tasks.filter((t: Task) => t.completed).length} / {tasks.length} completed
           </p>
         )}
       </div>
-    </div>
+    </main>
   );
 }
