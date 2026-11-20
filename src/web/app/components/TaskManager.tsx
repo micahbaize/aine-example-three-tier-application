@@ -1,18 +1,17 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   getTasks,
   createTask,
-  toggleTask,
   getProjects,
   createProject,
   deleteProject,
-  deleteTask,
   type Task,
   type Project,
 } from '../actions';
+import TaskTree from './TaskTree';
 
 export default function TaskManager({
   initialProjects,
@@ -30,21 +29,20 @@ export default function TaskManager({
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Reloads the flat task list (the tree is rebuilt client-side from parent_id).
+  const refreshTasks = useCallback(async () => {
+    const updated = selectedProjectId
+      ? await getTasks(selectedProjectId)
+      : await getTasks();
+    setTasks(updated);
+  }, [selectedProjectId]);
 
   // Refresh tasks when selected project changes
   useEffect(() => {
-    const refreshTasks = async () => {
-      try {
-        const updated = selectedProjectId
-          ? await getTasks(selectedProjectId)
-          : await getTasks();
-        setTasks(updated);
-      } catch (error) {
-        console.error('Failed to refresh tasks:', error);
-      }
-    };
-    refreshTasks();
-  }, [selectedProjectId]);
+    refreshTasks().catch((err) => console.error('Failed to refresh tasks:', err));
+  }, [refreshTasks]);
 
   const handleAddTask = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -55,34 +53,10 @@ export default function TaskManager({
     try {
       await createTask(formData);
       (e.target as HTMLFormElement).reset();
-      // Refresh tasks
-      const updated = selectedProjectId
-        ? await getTasks(selectedProjectId)
-        : await getTasks();
-      setTasks(updated);
-    } catch (error) {
-      console.error('Failed to add task:', error);
-    }
-  };
-
-  const handleToggleTask = async (id: number, completed: boolean) => {
-    try {
-      await toggleTask(id, !completed);
-      const updated = selectedProjectId
-        ? await getTasks(selectedProjectId)
-        : await getTasks();
-      setTasks(updated);
-    } catch (error) {
-      console.error('Failed to toggle task:', error);
-    }
-  };
-
-  const handleDeleteTask = async (id: number) => {
-    try {
-      await deleteTask(id);
-      setTasks(tasks.filter((t) => t.id !== id));
-    } catch (error) {
-      console.error('Failed to delete task:', error);
+      setError(null);
+      await refreshTasks();
+    } catch (err) {
+      console.error('Failed to add task:', err);
     }
   };
 
@@ -95,8 +69,8 @@ export default function TaskManager({
       setProjects(updated);
       (e.target as HTMLFormElement).reset();
       setShowNewProjectForm(false);
-    } catch (error) {
-      console.error('Failed to add project:', error);
+    } catch (err) {
+      console.error('Failed to add project:', err);
     }
   };
 
@@ -109,13 +83,15 @@ export default function TaskManager({
       if (selectedProjectId === id) {
         router.push('/');
       }
-    } catch (error) {
-      console.error('Failed to delete project:', error);
+    } catch (err) {
+      console.error('Failed to delete project:', err);
     }
   };
 
   const currentProject = projects.find((p) => p.id === selectedProjectId);
-  const completedCount = tasks.filter((t) => t.completed).length;
+  // Count only top-level tasks in the summary; subtasks are shown inside their parent.
+  const rootTasks = tasks.filter((t) => t.parent_id === null);
+  const completedCount = rootTasks.filter((t) => t.completed).length;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 py-8 px-4">
@@ -254,70 +230,36 @@ export default function TaskManager({
               </button>
             </form>
 
-            {/* Task list */}
-            <ul className="space-y-2">
-              {tasks.length === 0 && (
-                <li className="text-zinc-400 text-center py-8">
-                  {selectedProjectId
-                    ? 'No tasks in this project. Add one above!'
-                    : 'No tasks yet. Add one above!'}
-                </li>
-              )}
-              {tasks.map((task) => (
-                <li
-                  key={task.id}
-                  className="flex items-center gap-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-3 group"
-                >
-                  <button
-                    onClick={() => handleToggleTask(task.id, task.completed)}
-                    className={`h-5 w-5 rounded border-2 flex-shrink-0 transition-colors ${
-                      task.completed
-                        ? 'bg-zinc-900 dark:bg-zinc-50 border-zinc-900 dark:border-zinc-50'
-                        : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-500'
-                    }`}
-                    aria-label={
-                      task.completed ? 'Mark incomplete' : 'Mark complete'
-                    }
-                  >
-                    {task.completed && (
-                      <svg
-                        viewBox="0 0 12 12"
-                        className="text-white dark:text-zinc-900 w-full h-full p-0.5"
-                      >
-                        <path
-                          d="M2 6l3 3 5-5"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                  <span
-                    className={`flex-1 text-sm ${
-                      task.completed
-                        ? 'line-through text-zinc-400'
-                        : 'text-zinc-800 dark:text-zinc-100'
-                    }`}
-                  >
-                    {task.title}
-                  </span>
-                  <button
-                    onClick={() => handleDeleteTask(task.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900 text-red-600 dark:text-red-400 text-sm transition-all"
-                    title="Delete task"
-                  >
-                    ✕
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {error && (
+              <div
+                role="alert"
+                className="mb-4 flex items-start justify-between gap-4 rounded-lg border border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950 px-4 py-3 text-sm text-red-700 dark:text-red-300"
+              >
+                <span>{error}</span>
+                <button onClick={() => setError(null)} className="font-bold" aria-label="Dismiss">
+                  ✕
+                </button>
+              </div>
+            )}
 
-            {tasks.length > 0 && (
+            {/* Task tree: subtasks are nested under their parents */}
+            {tasks.length === 0 ? (
+              <p className="text-zinc-400 text-center py-8">
+                {selectedProjectId
+                  ? 'No tasks in this project. Add one above!'
+                  : 'No tasks yet. Add one above!'}
+              </p>
+            ) : (
+              <TaskTree
+                tasks={tasks}
+                onChanged={refreshTasks}
+                onError={(message) => setError(message)}
+              />
+            )}
+
+            {rootTasks.length > 0 && (
               <p className="mt-4 text-xs text-zinc-400">
-                {completedCount} / {tasks.length} completed
+                {completedCount} / {rootTasks.length} completed
               </p>
             )}
           </div>
