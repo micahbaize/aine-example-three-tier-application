@@ -9,6 +9,8 @@ export type Task = {
   title: string;
   completed: boolean;
   project_id: number | null;
+  parent_id: number | null;
+  position: number;
   created_at: string;
 };
 
@@ -19,6 +21,17 @@ export type Project = {
   color: string;
   created_at: string;
 };
+
+// Surface the API's error message (e.g. "Cannot complete task: 2 subtask(s) are not complete").
+async function apiError(res: Response, fallback: string): Promise<Error> {
+  try {
+    const body = await res.json();
+    if (body && typeof body.error === 'string') return new Error(body.error);
+  } catch {
+    // body was not JSON; fall through to the fallback message
+  }
+  return new Error(fallback);
+}
 
 // ============ PROJECT ACTIONS ============
 
@@ -95,6 +108,17 @@ export async function createTask(formData: FormData) {
   revalidatePath('/');
 }
 
+export async function createSubtask(parentId: number, title: string) {
+  const res = await fetch(`${API_URL}/tasks/${parentId}/subtasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title }),
+  });
+
+  if (!res.ok) throw await apiError(res, 'Failed to create subtask');
+  revalidatePath('/');
+}
+
 export async function toggleTask(id: number, completed: boolean) {
   const res = await fetch(`${API_URL}/tasks/${id}`, {
     method: 'PATCH',
@@ -102,7 +126,18 @@ export async function toggleTask(id: number, completed: boolean) {
     body: JSON.stringify({ completed }),
   });
 
-  if (!res.ok) throw new Error('Failed to update task');
+  if (!res.ok) throw await apiError(res, 'Failed to update task');
+  revalidatePath('/');
+}
+
+export async function reorderTask(id: number, position: number) {
+  const res = await fetch(`${API_URL}/tasks/${id}/reorder`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ position }),
+  });
+
+  if (!res.ok) throw await apiError(res, 'Failed to reorder task');
   revalidatePath('/');
 }
 
