@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import ThemeToggle from './ThemeToggle';
 import {
   getTasks,
   createTask,
@@ -123,6 +124,7 @@ export default function TaskManager({
         {/* Sidebar - Projects */}
         <div className="md:col-span-1">
           <div className="sticky top-8">
+            <ThemeToggle />
             <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">
               Projects
             </h2>
